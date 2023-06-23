@@ -32,6 +32,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_06_21_174838) do
     t.string "email"
     t.string "username"
     t.string "password_digest"
+    t.boolean "logged_in"
+    t.boolean "incognito_mode"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
