@@ -42,18 +42,50 @@ RSpec.describe "User API" do
   #   end
   # end
 
-  # describe "get a users info" do
-  #   describe "happy path" do
-  #     it "reterns correct user", :vcr do
-  #     end
-  #   end
+  describe "get a users info" do
+    describe "happy path" do
+      before :each do
+        params = {
+          name: "Pabu",
+          email: "pabu@pabu.com",
+          username: "pabuisthebest",
+          password: "pabu123",
+          password_confirmation: "pabu123",
+          logged_in: true,
+          incognito_mode: false }
+        headers = { "Content-Type" => "application/json" }
+        post "/api/v1/register", headers: headers, params: JSON.generate(params)
+      end
+      it "reterns correct user", :vcr do
+        params = {
+          name: "Pabu",
+          email: "pabu@pabu.com",
+          username: "pabuisthebest"
+        }
+        headers = { "Content-Type" => "application/json" }
+
+        get "/api/v1/user", headers: headers, params: { email: "pabu@pabu.com" }
+
+        user = JSON.parse(response.body, symbolize_names: true)[:data]
+
+        expect(response).to be_successful
+
+        expect(user).to include :id, :type, :attributes
+        expect(user[:type]).to eq("user")
+        expect(user[:attributes]).to include :email, :username, :logged_in, :incognito_mode
+        expect(user[:attributes][:email]).to eq("pabu@pabu.com")
+        expect(user[:attributes][:username]).to eq("pabuisthebest")
+        expect(user[:attributes][:logged_in]).to eq(true)
+        expect(user[:attributes][:incognito_mode]).to eq(false)
+      end
+    end
   #   describe "sad path" do 
   #     it "no user is found", :vcr do
   #     end
   #     it "a field is blank", :vcr do
   #     end
   #   end
-  # end
+  end
 
   # describe "login a user" do
   #   describe "happy path" do
