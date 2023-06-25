@@ -82,7 +82,7 @@ RSpec.describe "User API" do
       before :each do
         user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
       end
-      it "user is succsesffuly logged in", :vcr do
+      it "user is successfully logged in", :vcr do
         params = {
           email: "pabu@pabu.com",
           password: "pabu123"
@@ -112,6 +112,36 @@ RSpec.describe "User API" do
   #       #if the email isn't registered
   #     end
   #     it "filed is blank", :vcr do
+  #     end
+    # end
+  end
+  describe "logout a user" do
+    describe "happy path" do
+      before :each do
+        #Register user
+        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        #Login User
+        params = { email: "pabu@pabu.com", password: "pabu123" }
+        headers = { "Content-Type" => "application/json" }
+        post "/api/v1/login", headers: headers, params: JSON.generate(params)
+      end
+      it "user is successfully logged out", :vcr do
+        expect(session[:user_id]).to eq(1)
+
+        params = {
+          email: "pabu@pabu.com",
+          password: "pabu123"
+        }
+        headers = { "Content-Type" => "application/json" }
+
+        delete "/api/v1/logout", headers: headers, params: { email: "pabu@pabu.com" }
+
+        expect(response).to be_successful
+        expect(session[:user_id]).to be_nil
+      end
+    end
+  #   describe "sad path" do 
+  #     it "field is blank", :vcr do
   #     end
     # end
   end
