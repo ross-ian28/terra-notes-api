@@ -32,14 +32,56 @@ RSpec.describe "User API" do
         expect(user[:attributes][:incognito_mode]).to eq(new_user.incognito_mode)
       end
     end
-  #   describe "sad path" do 
-  #     it "a field is missing", :vcr do
-  #     end
-  #     it "an email is already taken", :vcr do
-  #     end
-  #     it "passwords dont match", :vcr do
-  #     end
-  #   end
+    describe "sad path" do 
+      it "a field is missing", :vcr do
+        params = {
+          name: "Pabu",
+          username: "pabuisthebest",
+          password: "pabu123",
+          password_confirmation: "pabu123",
+          logged_in: true,
+          incognito_mode: false }
+        headers = { "Content-Type" => "application/json" }
+
+        post "/api/v1/register", headers: headers, params: JSON.generate(params)
+
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Email can't be blank")
+      end
+      it "an email is already taken", :vcr do
+        User.create(name: "Loki", email: "pabu@pabu.com", username: "lokiisthebest", password: "loki123", password_confirmation: "loki123", logged_in: true, incognito_mode: false)
+        params = {
+          name: "Pabu",
+          email: "pabu@pabu.com",
+          username: "pabuisthebest",
+          password: "pabu123",
+          password_confirmation: "pabu123",
+          logged_in: true,
+          incognito_mode: false }
+        headers = { "Content-Type" => "application/json" }
+
+        post "/api/v1/register", headers: headers, params: JSON.generate(params)
+        
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Email has already been taken")
+      end
+      it "passwords dont match", :vcr do
+        params = {
+          name: "Pabu",
+          email: "pabu@pabu.com",
+          username: "pabuisthebest",
+          password: "pabu123",
+          password_confirmation: "pabu",
+          logged_in: true,
+          incognito_mode: false }
+        headers = { "Content-Type" => "application/json" }
+
+        post "/api/v1/register", headers: headers, params: JSON.generate(params)
+        
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Password confirmation doesn't match Password")
+      end
+    end
   end
 
   describe "get a users info" do
