@@ -88,11 +88,7 @@ RSpec.describe "User API" do
     describe "happy path" do
       it "reterns correct user", :vcr do
         User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
-        params = {
-          name: "Pabu",
-          email: "pabu@pabu.com",
-          username: "pabuisthebest"
-        }
+
         headers = { "Content-Type" => "application/json" }
 
         get "/api/v1/user", headers: headers, params: { email: "pabu@pabu.com" }
@@ -111,12 +107,32 @@ RSpec.describe "User API" do
         expect(user[:attributes][:incognito_mode]).to eq(false)
       end
     end
-  #   describe "sad path" do 
-  #     it "no user is found", :vcr do
-  #     end
-  #     it "a field is blank", :vcr do
-  #     end
-  #   end
+    describe "sad path" do 
+      it "no user is found", :vcr do
+        params = {
+          name: "Pabu",
+          email: "pabu@pabu.com",
+          username: "pabuisthebest"
+        }
+        headers = { "Content-Type" => "application/json" }
+
+        get "/api/v1/user", headers: headers, params: { email: "pabu@pabu.com" }
+        
+        expect(response).to_not be_successful
+
+        expect(response.body).to eq("User can't be found")
+      end
+      it "email is missing", :vcr do
+        User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        headers = { "Content-Type" => "application/json" }
+
+        get "/api/v1/user", headers: headers
+       
+        expect(response).to_not be_successful
+
+        expect(response.body).to eq("User can't be found")
+      end
+    end
   end
 
   describe "login a user" do
