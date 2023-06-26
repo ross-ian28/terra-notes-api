@@ -195,18 +195,38 @@ RSpec.describe "User API" do
 
         params = {
           email: "pabu@pabu.com",
-          password: "pabu123"
+          username: "pabu123"
         }
         headers = { "Content-Type" => "application/json" }
 
-        delete "/api/v1/logout", headers: headers, params: { email: "pabu@pabu.com" }
+        delete "/api/v1/logout", headers: headers
 
         expect(response).to be_successful
         expect(session[:user_id]).to be_nil
       end
     end
     describe "sad path" do 
+      before :each do
+        #Register user
+        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        #Login User
+        params = { email: "pabu@pabu.com", password: "pabu123" }
+        headers = { "Content-Type" => "application/json" }
+        post "/api/v1/login", headers: headers, params: JSON.generate(params)
+      end
       it "field is blank", :vcr do
+        expect(session[:user_id]).to eq(1)
+
+        params = {
+          username: "pabuiscool"
+        }
+        headers = { "Content-Type" => "application/json" }
+
+        delete "/api/v1/logout", headers: headers, params: { email: "pabu@pabu.com" }
+        
+        expect(response).to be_successful
+        expect(response.body).to eq("Logged out successfully")
+        expect(session[:user_id]).to eq(nil)
       end
     end
   end
