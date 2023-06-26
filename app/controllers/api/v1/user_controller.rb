@@ -13,6 +13,8 @@ class Api::V1::UserController < ApplicationController
     user = User.find_by(email: params[:email])
     if user
       render json: UserSerializer.user(user), status: 201
+    elsif user == nil
+      render json: "User can't be found", status: 400
     else
       render json: user.errors.full_messages.to_sentence.to_s, status: 400
     end
@@ -24,7 +26,7 @@ class Api::V1::UserController < ApplicationController
       session[:user_id] = user.id
       render json: UserSerializer.user(user), status: 200
     else
-      render json: 'Invalid info', status: 400
+      render json: 'Invalid Info', status: 400
     end
   end
 
