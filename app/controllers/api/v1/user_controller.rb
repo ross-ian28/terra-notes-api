@@ -26,7 +26,7 @@ class Api::V1::UserController < ApplicationController
       session[:user_id] = user.id
       render json: UserSerializer.user(user), status: 200
     else
-      render json: 'Invalid info', status: 400
+      render json: 'Invalid Info', status: 400
     end
   end
 
