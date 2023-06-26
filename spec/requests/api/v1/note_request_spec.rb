@@ -26,10 +26,14 @@ RSpec.describe "Notes API" do
     end
     describe "sad path" do 
       it "a field is missing", :vcr do
-      end
-      it "an email is already taken", :vcr do
-      end
-      it "passwords dont match", :vcr do
+        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        params = {
+          user_id: user.id }
+        headers = { "Content-Type" => "application/json" }
+        post "/api/v1/new_note", headers: headers, params: JSON.generate(params)
+
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Contents can't be blank") 
       end
     end
   end

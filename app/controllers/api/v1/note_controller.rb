@@ -4,7 +4,7 @@ class Api::V1::NoteController < ApplicationController
       if note.save
         render json: NoteSerializer.get_note(note), status: 201
       else
-        render json: user.errors.full_messages.to_sentence.to_s, status: 400
+        render json: note.errors.full_messages.to_sentence.to_s, status: 400
       end
     end
   
