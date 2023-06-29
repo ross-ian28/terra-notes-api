@@ -9,6 +9,7 @@ Rails.application.routes.draw do
 
       #Note endpoints
       post "/new_note", to: "note#create" #create a note
+      patch "/edit_note", to: "note#update" #edit a note
     end
   end
 end

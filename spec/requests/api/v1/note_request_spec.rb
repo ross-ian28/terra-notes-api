@@ -2,7 +2,7 @@ require "rails_helper"
 require "pry"
 
 RSpec.describe "Notes API" do
-  describe "create a notes" do
+  describe "create a note" do
     describe "happy path" do
       it "note is created", :vcr do
         user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
@@ -37,4 +37,32 @@ RSpec.describe "Notes API" do
       end
     end
   end
-end 
+
+  describe "edit a note" do
+    describe "happy path" do
+      it "edit note", :vcr do
+        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        note = Note.create(user_id: user.id, contents: "Ferret bag is full")
+        params = {
+          user_id: user.id,
+          note_id: note.id,
+          contents: "Go to the pet store for ferret food" }
+        headers = { "Content-Type" => "application/json" }
+        patch  "/api/v1/edit_note", headers: headers, params: JSON.generate(params)
+
+        updated_note = JSON.parse(response.body, symbolize_names: true)[:data]
+
+        expect(response).to be_successful
+        expect(updated_note).to include :id, :type, :attributes
+        expect(updated_note[:id]).to eq(note.id)
+        expect(updated_note[:type]).to eq("notes")
+        expect(updated_note[:attributes][:user_id]).to eq(note.user_id)
+        expect(updated_note[:attributes][:contents]).to eq("Go to the pet store for ferret food")
+      end
+    end
+    describe "sad path" do 
+      it "a field is missing", :vcr do
+      end
+    end
+  end
+end
