@@ -1,5 +1,10 @@
 require "rails_helper"
 require "pry"
+require './spec/support/user_helpers'
+
+RSpec.configure do |c|
+  c.include UserHelpers
+end
 
 RSpec.describe "User API" do
   describe "register a user" do
@@ -46,7 +51,7 @@ RSpec.describe "User API" do
         expect(response.body).to eq("Email can't be blank")
       end
       it "an email is already taken", :vcr do
-        User.create(name: "Loki", email: "pabu@pabu.com", username: "lokiisthebest", password: "loki123", password_confirmation: "loki123", logged_in: true, incognito_mode: false)
+        register("Loki", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         params = {
           name: "Pabu",
           email: "pabu@pabu.com",
@@ -83,7 +88,7 @@ RSpec.describe "User API" do
   describe "get a users info" do
     describe "happy path" do
       it "reterns correct user", :vcr do
-        User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
 
         headers = { "Content-Type" => "application/json" }
         get "/api/v1/user", headers: headers, params: { email: "pabu@pabu.com" }
@@ -115,7 +120,7 @@ RSpec.describe "User API" do
         expect(response.body).to eq("User can't be found")
       end
       it "email is missing", :vcr do
-        User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
 
         headers = { "Content-Type" => "application/json" }
         get "/api/v1/user", headers: headers
@@ -129,7 +134,7 @@ RSpec.describe "User API" do
   describe "login a user" do
     describe "happy path" do
       before :each do
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
       end
       it "user is successfully logged in", :vcr do
         params = {
@@ -153,7 +158,7 @@ RSpec.describe "User API" do
     end
     describe "sad path" do 
       it "password isnt correct", :vcr do
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         params = {
           email: "pabu@pabu.com",
           password: "loki321"
@@ -165,7 +170,7 @@ RSpec.describe "User API" do
         expect(response.body).to eq("Invalid Info")
       end
       it "email doesnt exist", :vcr do
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         params = {
           email: "loki@pabu.com",
           password: "pabu123"
@@ -177,14 +182,21 @@ RSpec.describe "User API" do
         expect(response.body).to eq("Invalid Info")
       end
       it "filed is blank", :vcr do
+        params = {
+          email: "loki@pabu.com"
+        }
+        headers = { "Content-Type" => "application/json" }
+        post "/api/v1/login", headers: headers, params: JSON.generate(params)
+        
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Invalid Info")
       end
     end
   end
   describe "logout a user" do
     describe "happy path" do
       before :each do
-        #Register user
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         #Login User
         params = { email: "pabu@pabu.com", password: "pabu123" }
         headers = { "Content-Type" => "application/json" }
@@ -207,8 +219,7 @@ RSpec.describe "User API" do
     end
     describe "sad path" do 
       before :each do
-        #Register user
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         #Login User
         params = { email: "pabu@pabu.com", password: "pabu123" }
         headers = { "Content-Type" => "application/json" }
