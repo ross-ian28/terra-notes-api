@@ -3,7 +3,7 @@ class Api::V1::UserController < ApplicationController
     user = User.new(user_params)
     if user.save
       session[:user_id] = user.id
-      render json: UserSerializer.user(user), status: 201
+      render json: UserSerializer.get_user(user), status: 201
     else
       render json: user.errors.full_messages.to_sentence.to_s, status: 400
     end
@@ -12,7 +12,7 @@ class Api::V1::UserController < ApplicationController
   def index
     user = User.find_by(email: params[:email])
     if user
-      render json: UserSerializer.user(user), status: 201
+      render json: UserSerializer.get_user(user), status: 201
     elsif user == nil
       render json: "User can't be found", status: 400
     else
@@ -24,7 +24,7 @@ class Api::V1::UserController < ApplicationController
     user = User.find_by(email: params[:email])
     if user && user.authenticate(params[:password])
       session[:user_id] = user.id
-      render json: UserSerializer.user(user), status: 200
+      render json: UserSerializer.get_user(user), status: 200
     else
       render json: 'Invalid Info', status: 400
     end
