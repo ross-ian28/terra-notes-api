@@ -197,10 +197,7 @@ RSpec.describe "User API" do
     describe "happy path" do
       before :each do
         register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
-        #Login User
-        params = { email: "pabu@pabu.com", password: "pabu123" }
-        headers = { "Content-Type" => "application/json" }
-        post "/api/v1/login", headers: headers, params: JSON.generate(params)
+        login("pabu@pabu.com", "pabu123")
       end
       it "user is successfully logged out", :vcr do
         expect(session[:user_id]).to eq(1)
@@ -220,10 +217,7 @@ RSpec.describe "User API" do
     describe "sad path" do 
       before :each do
         register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
-        #Login User
-        params = { email: "pabu@pabu.com", password: "pabu123" }
-        headers = { "Content-Type" => "application/json" }
-        post "/api/v1/login", headers: headers, params: JSON.generate(params)
+        login("pabu@pabu.com", "pabu123")
       end
       it "field is blank", :vcr do
         expect(session[:user_id]).to eq(1)
