@@ -189,49 +189,48 @@ RSpec.describe "User API" do
         post "/api/v1/login", headers: headers, params: JSON.generate(params)
         
         expect(response).to_not be_successful
-        expect(response.body).to eq("Invalid Info")
+        expect(response.body).to eq("Email or Password is blank")
       end
     end
   end
   describe "logout a user" do
     describe "happy path" do
-      before :each do
-        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
-        login("pabu@pabu.com", "pabu123")
-      end
       it "user is successfully logged out", :vcr do
-        expect(session[:user_id]).to eq(1)
+        new_user = register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+        login("pabu@pabu.com", "pabu123")
 
+        expect(session[:user_id]).to eq(1)
+        expect(new_user.logged_in).to be(true)
+        
         params = {
-          email: "pabu@pabu.com",
-          username: "pabu123"
+          email: "pabu@pabu.com"
         }
         headers = { "Content-Type" => "application/json" }
 
-        delete "/api/v1/logout", headers: headers
-
+        delete "/api/v1/logout", headers: headers, params: JSON.generate(params)
+        
         expect(response).to be_successful
         expect(session[:user_id]).to be_nil
+    
+        user = User.find(1)
+        expect(user.logged_in).to be(false)
       end
     end
     describe "sad path" do 
-      before :each do
-        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
-        login("pabu@pabu.com", "pabu123")
-      end
       it "field is blank", :vcr do
+        user = register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+        login("pabu@pabu.com", "pabu123")
+
         expect(session[:user_id]).to eq(1)
 
-        params = {
-          username: "pabuiscool"
-        }
         headers = { "Content-Type" => "application/json" }
 
-        delete "/api/v1/logout", headers: headers, params: { email: "pabu@pabu.com" }
+        delete "/api/v1/logout", headers: headers
         
-        expect(response).to be_successful
-        expect(response.body).to eq("Logged out successfully")
-        expect(session[:user_id]).to eq(nil)
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Something went wrong")
+        expect(session[:user_id]).to eq(1)
+        expect(user.logged_in).to be(true)
       end
     end
   end
