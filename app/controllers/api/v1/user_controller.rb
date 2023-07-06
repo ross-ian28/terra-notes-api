@@ -1,5 +1,4 @@
 class Api::V1::UserController < ApplicationController
-  include CheckParamsHelper
 
   def create
     if params[:name].present? && params[:email].present? && params[:username].present? && params[:password].present? && params[:password_confirmation].present?

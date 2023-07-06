@@ -215,6 +215,27 @@ RSpec.describe "User API" do
         user = User.find(1)
         expect(user.logged_in).to be(false)
       end
+      #TO DO
+      it "user can log out and then back in", :vcr do
+        new_user = register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+        login("pabu@pabu.com", "pabu123")
+
+        expect(session[:user_id]).to eq(1)
+        expect(new_user.logged_in).to be(true)
+        
+        params = {
+          email: "pabu@pabu.com"
+        }
+        headers = { "Content-Type" => "application/json" }
+
+        delete "/api/v1/logout", headers: headers, params: JSON.generate(params)
+        
+        expect(response).to be_successful
+        expect(session[:user_id]).to be_nil
+    
+        user = User.find(1)
+        expect(user.logged_in).to be(false)
+      end
     end
     describe "sad path" do 
       it "field is blank", :vcr do
