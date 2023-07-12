@@ -5,7 +5,7 @@ class CreateUsers < ActiveRecord::Migration[7.0]
       t.string :email
       t.string :username
       t.string :password_digest
-      t.boolean :logged_in, default: true
+      t.boolean :logged_in, default: false
       t.boolean :incognito_mode, default: false
 
       t.timestamps
