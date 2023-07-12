@@ -1,5 +1,10 @@
 require "rails_helper"
 require "pry"
+require './spec/support/user_helpers'
+
+RSpec.configure do |c|
+  c.include UserHelpers
+end
 
 RSpec.describe "User API" do
   describe "register a user" do
@@ -10,9 +15,7 @@ RSpec.describe "User API" do
           email: "pabu@pabu.com",
           username: "pabuisthebest",
           password: "pabu123",
-          password_confirmation: "pabu123",
-          logged_in: true,
-          incognito_mode: false }
+          password_confirmation: "pabu123" }
         headers = { "Content-Type" => "application/json" }
         post "/api/v1/register", headers: headers, params: JSON.generate(params)
 
@@ -26,8 +29,8 @@ RSpec.describe "User API" do
         expect(user[:attributes]).to include :email, :username, :logged_in, :incognito_mode
         expect(user[:attributes][:email]).to eq(new_user.email)
         expect(user[:attributes][:username]).to eq(new_user.username)
-        expect(user[:attributes][:logged_in]).to eq(new_user.logged_in)
-        expect(user[:attributes][:incognito_mode]).to eq(new_user.incognito_mode)
+        expect(user[:attributes][:logged_in]).to eq(false)
+        expect(user[:attributes][:incognito_mode]).to eq(false)
       end
     end
     describe "sad path" do 
@@ -46,7 +49,7 @@ RSpec.describe "User API" do
         expect(response.body).to eq("Email can't be blank")
       end
       it "an email is already taken", :vcr do
-        User.create(name: "Loki", email: "pabu@pabu.com", username: "lokiisthebest", password: "loki123", password_confirmation: "loki123", logged_in: true, incognito_mode: false)
+        register("Loki", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         params = {
           name: "Pabu",
           email: "pabu@pabu.com",
@@ -83,7 +86,7 @@ RSpec.describe "User API" do
   describe "get a users info" do
     describe "happy path" do
       it "reterns correct user", :vcr do
-        User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
 
         headers = { "Content-Type" => "application/json" }
         get "/api/v1/user", headers: headers, params: { email: "pabu@pabu.com" }
@@ -97,7 +100,7 @@ RSpec.describe "User API" do
         expect(user[:attributes][:name]).to eq("Pabu")
         expect(user[:attributes][:email]).to eq("pabu@pabu.com")
         expect(user[:attributes][:username]).to eq("pabuisthebest")
-        expect(user[:attributes][:logged_in]).to eq(true)
+        expect(user[:attributes][:logged_in]).to eq(false)
         expect(user[:attributes][:incognito_mode]).to eq(false)
       end
     end
@@ -115,7 +118,7 @@ RSpec.describe "User API" do
         expect(response.body).to eq("User can't be found")
       end
       it "email is missing", :vcr do
-        User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
 
         headers = { "Content-Type" => "application/json" }
         get "/api/v1/user", headers: headers
@@ -128,10 +131,9 @@ RSpec.describe "User API" do
 
   describe "login a user" do
     describe "happy path" do
-      before :each do
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
-      end
       it "user is successfully logged in", :vcr do
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+
         params = {
           email: "pabu@pabu.com",
           password: "pabu123"
@@ -153,7 +155,7 @@ RSpec.describe "User API" do
     end
     describe "sad path" do 
       it "password isnt correct", :vcr do
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         params = {
           email: "pabu@pabu.com",
           password: "loki321"
@@ -165,7 +167,7 @@ RSpec.describe "User API" do
         expect(response.body).to eq("Invalid Info")
       end
       it "email doesnt exist", :vcr do
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         params = {
           email: "loki@pabu.com",
           password: "pabu123"
@@ -177,56 +179,92 @@ RSpec.describe "User API" do
         expect(response.body).to eq("Invalid Info")
       end
       it "filed is blank", :vcr do
+        params = {
+          email: "loki@pabu.com"
+        }
+        headers = { "Content-Type" => "application/json" }
+        post "/api/v1/login", headers: headers, params: JSON.generate(params)
+        
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Email or Password is blank")
       end
     end
   end
   describe "logout a user" do
     describe "happy path" do
-      before :each do
-        #Register user
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
-        #Login User
-        params = { email: "pabu@pabu.com", password: "pabu123" }
-        headers = { "Content-Type" => "application/json" }
-        post "/api/v1/login", headers: headers, params: JSON.generate(params)
-      end
       it "user is successfully logged out", :vcr do
-        expect(session[:user_id]).to eq(1)
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+        login("pabu@pabu.com", "pabu123")
+        user = User.find(1)
 
+        expect(session[:user_id]).to eq(1)
+        expect(user.logged_in).to be(true)
+        
         params = {
-          email: "pabu@pabu.com",
-          username: "pabu123"
+          email: "pabu@pabu.com"
         }
         headers = { "Content-Type" => "application/json" }
 
-        delete "/api/v1/logout", headers: headers
-
+        delete "/api/v1/logout", headers: headers, params: JSON.generate(params)
+        
         expect(response).to be_successful
         expect(session[:user_id]).to be_nil
+        
+        user = User.find(1)
+        expect(user.logged_in).to be(false)
+      end
+      it "user can log out and then back in", :vcr do 
+        # Register user
+        new_user = register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+        expect(new_user.logged_in).to be(false)
+
+        # Log in user
+        login("pabu@pabu.com", "pabu123")
+        expect(response).to be_successful
+
+        user = User.find(1)
+        expect(user.logged_in).to be(true)
+
+        expect(session[:user_id]).to eq(1)
+
+        # Log out the user
+        logout_params = {
+          email: "pabu@pabu.com"
+        }
+        headers = { "Content-Type" => "application/json" }
+        delete "/api/v1/logout", headers: headers, params: JSON.generate(logout_params)
+        expect(response).to be_successful
+        
+        user = User.find(1)
+        expect(user.logged_in).to be(false)
+        
+        expect(session[:user_id]).to be_nil
+
+        # Log in user
+        login("pabu@pabu.com", "pabu123")
+        expect(response).to be_successful
+
+        user = User.find(1)
+        expect(user.logged_in).to be(true)
+
+        expect(session[:user_id]).to eq(1)
       end
     end
     describe "sad path" do 
-      before :each do
-        #Register user
-        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
-        #Login User
-        params = { email: "pabu@pabu.com", password: "pabu123" }
-        headers = { "Content-Type" => "application/json" }
-        post "/api/v1/login", headers: headers, params: JSON.generate(params)
-      end
       it "field is blank", :vcr do
+        user = register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+        login("pabu@pabu.com", "pabu123")
+
         expect(session[:user_id]).to eq(1)
 
-        params = {
-          username: "pabuiscool"
-        }
         headers = { "Content-Type" => "application/json" }
 
-        delete "/api/v1/logout", headers: headers, params: { email: "pabu@pabu.com" }
+        delete "/api/v1/logout", headers: headers
         
-        expect(response).to be_successful
-        expect(response.body).to eq("Logged out successfully")
-        expect(session[:user_id]).to eq(nil)
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Something went wrong")
+        expect(session[:user_id]).to eq(1)
+        expect(user.logged_in).to be(false)
       end
     end
   end
