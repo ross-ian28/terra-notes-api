@@ -15,9 +15,7 @@ RSpec.describe "User API" do
           email: "pabu@pabu.com",
           username: "pabuisthebest",
           password: "pabu123",
-          password_confirmation: "pabu123",
-          logged_in: true,
-          incognito_mode: false }
+          password_confirmation: "pabu123" }
         headers = { "Content-Type" => "application/json" }
         post "/api/v1/register", headers: headers, params: JSON.generate(params)
 
@@ -31,8 +29,8 @@ RSpec.describe "User API" do
         expect(user[:attributes]).to include :email, :username, :logged_in, :incognito_mode
         expect(user[:attributes][:email]).to eq(new_user.email)
         expect(user[:attributes][:username]).to eq(new_user.username)
-        expect(user[:attributes][:logged_in]).to eq(new_user.logged_in)
-        expect(user[:attributes][:incognito_mode]).to eq(new_user.incognito_mode)
+        expect(user[:attributes][:logged_in]).to eq(false)
+        expect(user[:attributes][:incognito_mode]).to eq(false)
       end
     end
     describe "sad path" do 
@@ -102,7 +100,7 @@ RSpec.describe "User API" do
         expect(user[:attributes][:name]).to eq("Pabu")
         expect(user[:attributes][:email]).to eq("pabu@pabu.com")
         expect(user[:attributes][:username]).to eq("pabuisthebest")
-        expect(user[:attributes][:logged_in]).to eq(true)
+        expect(user[:attributes][:logged_in]).to eq(false)
         expect(user[:attributes][:incognito_mode]).to eq(false)
       end
     end
@@ -133,10 +131,9 @@ RSpec.describe "User API" do
 
   describe "login a user" do
     describe "happy path" do
-      before :each do
-        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
-      end
       it "user is successfully logged in", :vcr do
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+
         params = {
           email: "pabu@pabu.com",
           password: "pabu123"
@@ -196,11 +193,12 @@ RSpec.describe "User API" do
   describe "logout a user" do
     describe "happy path" do
       it "user is successfully logged out", :vcr do
-        new_user = register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+        register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
         login("pabu@pabu.com", "pabu123")
+        user = User.find(1)
 
         expect(session[:user_id]).to eq(1)
-        expect(new_user.logged_in).to be(true)
+        expect(user.logged_in).to be(true)
         
         params = {
           email: "pabu@pabu.com"
@@ -211,30 +209,45 @@ RSpec.describe "User API" do
         
         expect(response).to be_successful
         expect(session[:user_id]).to be_nil
-    
+        
         user = User.find(1)
         expect(user.logged_in).to be(false)
       end
-      #TO DO
-      it "user can log out and then back in", :vcr do
+      it "user can log out and then back in", :vcr do 
+        # Register user
         new_user = register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
+        expect(new_user.logged_in).to be(false)
+
+        # Log in user
         login("pabu@pabu.com", "pabu123")
+        expect(response).to be_successful
+
+        user = User.find(1)
+        expect(user.logged_in).to be(true)
 
         expect(session[:user_id]).to eq(1)
-        expect(new_user.logged_in).to be(true)
-        
-        params = {
+
+        # Log out the user
+        logout_params = {
           email: "pabu@pabu.com"
         }
         headers = { "Content-Type" => "application/json" }
-
-        delete "/api/v1/logout", headers: headers, params: JSON.generate(params)
-        
+        delete "/api/v1/logout", headers: headers, params: JSON.generate(logout_params)
         expect(response).to be_successful
-        expect(session[:user_id]).to be_nil
-    
+        
         user = User.find(1)
         expect(user.logged_in).to be(false)
+        
+        expect(session[:user_id]).to be_nil
+
+        # Log in user
+        login("pabu@pabu.com", "pabu123")
+        expect(response).to be_successful
+
+        user = User.find(1)
+        expect(user.logged_in).to be(true)
+
+        expect(session[:user_id]).to eq(1)
       end
     end
     describe "sad path" do 
@@ -251,7 +264,7 @@ RSpec.describe "User API" do
         expect(response).to_not be_successful
         expect(response.body).to eq("Something went wrong")
         expect(session[:user_id]).to eq(1)
-        expect(user.logged_in).to be(true)
+        expect(user.logged_in).to be(false)
       end
     end
   end
