@@ -35,7 +35,11 @@ class Api::V1::UserController < ApplicationController
       if user && user.authenticate(params[:password])
         session[:user_id] = user.id
         user.logged_in = true
-        render json: UserSerializer.get_user(user), status: 201
+        if user.save
+          render json: UserSerializer.get_user(user), status: 201
+        else 
+          render json: "Couldn't log in", status: 400
+        end
       else
         render json: 'Invalid Info', status: 400
       end
@@ -50,10 +54,10 @@ class Api::V1::UserController < ApplicationController
       #Change the logged_in field to false and 
       session[:user_id] = nil 
       user.logged_in = false
-      if user.save!
+      if user.save
         render json: 'Logged out successfully', status: 201
       else 
-        render json: 'No', status: 400
+        render json: "Can't log out", status: 400
       end
     else 
       render json: 'Something went wrong', status: 400
