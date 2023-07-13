@@ -62,6 +62,16 @@ RSpec.describe "Notes API" do
     end
     describe "sad path" do 
       it "a field is missing", :vcr do
+        user = User.create(name: "Pabu", email: "pabu@pabu.com", username: "pabuisthebest", password: "pabu123", password_confirmation: "pabu123", logged_in: true, incognito_mode: false)
+        note = Note.create(user_id: user.id, contents: "Ferret bag is full")
+        params = {
+          user_id: user.id,
+          contents: "Go to the pet store for ferret food" }
+        headers = { "Content-Type" => "application/json" }
+        patch  "/api/v1/edit_note", headers: headers, params: JSON.generate(params)
+        
+        expect(response).to_not be_successful
+        expect(response.body).to eq("Could not update note")
       end
     end
   end
