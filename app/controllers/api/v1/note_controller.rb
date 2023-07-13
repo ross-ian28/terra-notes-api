@@ -11,10 +11,10 @@ class Api::V1::NoteController < ApplicationController
     def update
         user = User.find_by(id: params[:user_id])
         note = user.notes.find_by(id: params[:note_id])
-        if note.update(note_params)
+        if note && note.update(note_params)
           render json: NoteSerializer.get_note(note), status: 201
         else
-          render json: note.errors.full_messages.to_sentence.to_s, status: 400
+          render json: "Could not update note", status: 400
         end
       end
   
