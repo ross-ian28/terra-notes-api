@@ -4,7 +4,6 @@ class Api::V1::UserController < ApplicationController
     if params[:name].present? && params[:email].present? && params[:password].present?
       user = User.new(user_params)
       if user.save
-        session[:user_id] = user.id
         render json: UserSerializer.get_user(user), status: 201
       else
         render json: user.errors.full_messages.to_sentence.to_s, status: 400
@@ -41,7 +40,7 @@ class Api::V1::UserController < ApplicationController
           render json: "Couldn't log in", status: 400
         end
       else
-        render json: 'Invalid Info', status: 400
+        render json: 'Invalid Credentials', status: 400
       end
     else 
       render json: 'Email or Password is blank', status: 400

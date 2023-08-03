@@ -164,7 +164,7 @@ RSpec.describe "User API" do
         post "/api/v1/login", headers: headers, params: JSON.generate(params)
 
         expect(response).to_not be_successful
-        expect(response.body).to eq("Invalid Info")
+        expect(response.body).to eq("Invalid Credentials")
       end
       it "email doesnt exist", :vcr do
         register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
@@ -176,7 +176,7 @@ RSpec.describe "User API" do
         post "/api/v1/login", headers: headers, params: JSON.generate(params)
 
         expect(response).to_not be_successful
-        expect(response.body).to eq("Invalid Info")
+        expect(response.body).to eq("Invalid Credentials")
       end
       it "filed is blank", :vcr do
         params = {
