@@ -6,7 +6,7 @@ class Api::V1::UserController < ApplicationController
       if user.save
         render json: UserSerializer.get_user(user), status: 201
       else
-        render json: ErrorSerializer.get_errorr(user.errors.full_messages.to_sentence.to_s), status: 400
+        render json: ErrorSerializer.get_error(user.errors.full_messages.to_sentence.to_s), status: 400
       end
     else
       render json: ErrorSerializer.get_error("A field is blank"), status: 400
@@ -19,7 +19,7 @@ class Api::V1::UserController < ApplicationController
       if user && session
         render json: UserSerializer.get_user(user), status: 201
       else
-        render json: ErrorSerializer.get_error(user.errors.full_messages.to_sentence.to_s), status: 400
+        render json: ErrorSerializer.get_error("User can't be found"), status: 400
       end
     else 
       render json: ErrorSerializer.get_error("User can't be found"), status: 400
@@ -48,7 +48,6 @@ class Api::V1::UserController < ApplicationController
   def logout
     if params[:email].present?
       user = User.find_by(email: params[:email])
-      #Change the logged_in field to false and 
       session[:user_id] = nil 
       user.logged_in = false
       if user.save
