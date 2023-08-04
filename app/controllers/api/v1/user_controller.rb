@@ -6,10 +6,10 @@ class Api::V1::UserController < ApplicationController
       if user.save
         render json: UserSerializer.get_user(user), status: 201
       else
-        render json: user.errors.full_messages.to_sentence.to_s, status: 400
+        render json: ErrorSerializer.get_errorr(user.errors.full_messages.to_sentence.to_s), status: 400
       end
     else
-      render json: "Email can't be blank", status: 400
+      render json: ErrorSerializer.get_error("A field is blank"), status: 400
     end
   end
 
@@ -18,13 +18,11 @@ class Api::V1::UserController < ApplicationController
       user = User.find_by(email: params[:email])
       if user && session
         render json: UserSerializer.get_user(user), status: 201
-      elsif user == nil
-        render json: "User can't be found", status: 400
       else
-        render json: user.errors.full_messages.to_sentence.to_s, status: 400
+        render json: ErrorSerializer.get_error(user.errors.full_messages.to_sentence.to_s), status: 400
       end
     else 
-      render json: "User can't be found", status: 400
+      render json: ErrorSerializer.get_error("User can't be found"), status: 400
     end
   end
 
@@ -37,13 +35,13 @@ class Api::V1::UserController < ApplicationController
         if user.save
           render json: UserSerializer.get_user(user), status: 201
         else 
-          render json: "Couldn't log in", status: 400
+          render json: ErrorSerializer.get_error("Something went wrong"), status: 400
         end
       else
-        render json: 'Invalid Credentials', status: 400
+        render json: ErrorSerializer.get_error("Invalid Credentials"), status: 400
       end
     else 
-      render json: 'Email or Password is blank', status: 400
+      render json: ErrorSerializer.get_error("A field is blank"), status: 400
     end
   end
   
@@ -54,17 +52,17 @@ class Api::V1::UserController < ApplicationController
       session[:user_id] = nil 
       user.logged_in = false
       if user.save
-        render json: 'Logged out successfully', status: 201
+        render json: UserSerializer.logout("Logged out successfully"), status: 201
       else 
-        render json: "Can't log out", status: 400
+        render json: ErrorSerializer.get_error("Couldn't logout"), status: 400
       end
     else 
-      render json: 'Something went wrong', status: 400
+      render json: ErrorSerializer.get_error("Something went wrong"), status: 400
     end
   end
 
   private
   def user_params
-    params.permit(:name, :email, :username, :password, :password_confirmation, :logged_in, :incognito_mode)
+    params.permit(:name, :email, :username, :password, :logged_in, :incognito_mode)
   end
 end
