@@ -14,4 +14,13 @@ class UserSerializer
         }
       }
     end
+
+    def self.logout(msg)
+      {
+        data: {
+          type: "users",
+          msg: msg
+        }
+      }
+    end
   end
