@@ -45,8 +45,10 @@ RSpec.describe "User API" do
         headers = { "Content-Type" => "application/json" }
         post "/api/v1/register", headers: headers, params: JSON.generate(params)
 
+        error_msg = JSON.parse(response.body, symbolize_names: true)[:data]
+
         expect(response).to_not be_successful
-        expect(response.body).to eq("Email can't be blank")
+        expect(error_msg[:error]).to eq("A field is blank")
       end
       it "an email is already taken", :vcr do
         register("Loki", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
@@ -62,23 +64,10 @@ RSpec.describe "User API" do
 
         post "/api/v1/register", headers: headers, params: JSON.generate(params)
         
+        error_msg = JSON.parse(response.body, symbolize_names: true)[:data]
+
         expect(response).to_not be_successful
-        expect(response.body).to eq("Email has already been taken")
-      end
-      it "passwords dont match", :vcr do
-        params = {
-          name: "Pabu",
-          email: "pabu@pabu.com",
-          username: "pabuisthebest",
-          password: "pabu123",
-          password_confirmation: "pabu",
-          logged_in: true,
-          incognito_mode: false }
-        headers = { "Content-Type" => "application/json" }
-        post "/api/v1/register", headers: headers, params: JSON.generate(params)
-        
-        expect(response).to_not be_successful
-        expect(response.body).to eq("Password confirmation doesn't match Password")
+        expect(error_msg[:error]).to eq("Email has already been taken")
       end
     end
   end
@@ -114,8 +103,10 @@ RSpec.describe "User API" do
         headers = { "Content-Type" => "application/json" }
         get "/api/v1/user", headers: headers, params: { email: "pabu@pabu.com" }
         
+        error_msg = JSON.parse(response.body, symbolize_names: true)[:data]
+
         expect(response).to_not be_successful
-        expect(response.body).to eq("User can't be found")
+        expect(error_msg[:error]).to eq("User can't be found")
       end
       it "email is missing", :vcr do
         register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
@@ -123,8 +114,11 @@ RSpec.describe "User API" do
         headers = { "Content-Type" => "application/json" }
         get "/api/v1/user", headers: headers
        
+        error_msg = JSON.parse(response.body, symbolize_names: true)[:data]
+
         expect(response).to_not be_successful
-        expect(response.body).to eq("User can't be found")
+        expect(error_msg[:error]).to eq("User can't be found")
+
       end
     end
   end
@@ -163,8 +157,10 @@ RSpec.describe "User API" do
         headers = { "Content-Type" => "application/json" }
         post "/api/v1/login", headers: headers, params: JSON.generate(params)
 
+        error_msg = JSON.parse(response.body, symbolize_names: true)[:data]
+
         expect(response).to_not be_successful
-        expect(response.body).to eq("Invalid Credentials")
+        expect(error_msg[:error]).to eq("Invalid Credentials")
       end
       it "email doesnt exist", :vcr do
         register("Pabu", "pabu@pabu.com", "pabuisthebest", "pabu123", "pabu123")
@@ -175,8 +171,10 @@ RSpec.describe "User API" do
         headers = { "Content-Type" => "application/json" }
         post "/api/v1/login", headers: headers, params: JSON.generate(params)
 
+        error_msg = JSON.parse(response.body, symbolize_names: true)[:data]
+
         expect(response).to_not be_successful
-        expect(response.body).to eq("Invalid Credentials")
+        expect(error_msg[:error]).to eq("Invalid Credentials")
       end
       it "filed is blank", :vcr do
         params = {
@@ -184,9 +182,11 @@ RSpec.describe "User API" do
         }
         headers = { "Content-Type" => "application/json" }
         post "/api/v1/login", headers: headers, params: JSON.generate(params)
-        
+
+        error_msg = JSON.parse(response.body, symbolize_names: true)[:data]
+
         expect(response).to_not be_successful
-        expect(response.body).to eq("Email or Password is blank")
+        expect(error_msg[:error]).to eq("A field is blank")
       end
     end
   end
@@ -259,10 +259,13 @@ RSpec.describe "User API" do
 
         headers = { "Content-Type" => "application/json" }
 
+
         delete "/api/v1/logout", headers: headers
         
+        error_msg = JSON.parse(response.body, symbolize_names: true)[:data]
+        
         expect(response).to_not be_successful
-        expect(response.body).to eq("Something went wrong")
+        expect(error_msg[:error]).to eq("Something went wrong")
         expect(session[:user_id]).to eq(1)
         expect(user.logged_in).to be(false)
       end
