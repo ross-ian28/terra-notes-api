@@ -20,20 +20,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_06_21_174838) do
   end
 
   create_table "notes", force: :cascade do |t|
-    t.integer "user_id"
-    t.text "contents"
+    t.integer "user_id", null: false
+    t.text "contents", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_notes_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "name"
-    t.string "email"
+    t.string "name", null: false
+    t.string "email", null: false
     t.string "username"
-    t.string "password_digest"
-    t.boolean "logged_in", default: false
-    t.boolean "incognito_mode", default: false
+    t.string "password_digest", null: false
+    t.boolean "logged_in", default: false, null: false
+    t.boolean "incognito_mode", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

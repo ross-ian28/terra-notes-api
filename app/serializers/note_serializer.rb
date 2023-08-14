@@ -11,4 +11,17 @@ class NoteSerializer
         }
       }
     end
+
+    
+
+    def self.delete(msg)
+      {
+        data: {
+          type: "notes",
+          attributes: {
+            msg: msg
+          }
+        }
+      }
+    end
   end
