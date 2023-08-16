@@ -27,17 +27,20 @@ class Api::V1::UserController < ApplicationController
 
   def login
     if params[:email].present? && params[:password].present?
-      user = User.find_by(email: params[:email])
-      if user && user.authenticate(params[:password])
-        session[:user_id] = user.id
-        user.logged_in = true
-        if user.save
-          render json: UserSerializer.get_user(user), status: 201
-        else 
-          render json: ErrorSerializer.get_user_error("Something went wrong"), status: 400
+      if user = User.find_by(email: params[:email])
+        if user && user.authenticate(params[:password])
+          session[:user_id] = user.id
+          user.logged_in = true
+          if user.save
+            render json: UserSerializer.get_user(user), status: 201
+          else 
+            render json: ErrorSerializer.get_user_error("Something went wrong"), status: 400
+          end
+        else
+          render json: ErrorSerializer.get_user_error("Invalid Credentials"), status: 400
         end
-      else
-        render json: ErrorSerializer.get_user_error("Invalid Credentials"), status: 400
+      else 
+        render json: ErrorSerializer.get_user_error("Email not registered"), status: 400
       end
     else 
       render json: ErrorSerializer.get_user_error("A field is blank"), status: 400
