@@ -16,7 +16,9 @@ class UserSerializer
               type: "notes",
               attributes: {
                 user_id: note.user_id,
-                contents: note.contents
+                contents: note.contents,
+                x_position: note.x_position,
+                y_position: note.y_position
               }
             }
           end
