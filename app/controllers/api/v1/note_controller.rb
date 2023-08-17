@@ -27,7 +27,7 @@ class Api::V1::NoteController < ApplicationController
       end
 
       def delete
-        note = Note.new(user_id: find_user_id())
+        note = Note.find(params[:note_id])
         if note.delete
           render json: NoteSerializer.delete("Note deleted sucsessfully"), status: 201
         else
