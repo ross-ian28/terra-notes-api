@@ -1,6 +1,6 @@
 class Api::V1::NoteController < ApplicationController
     def create
-      note = Note.new(user_id: find_user_id(), contents: "New note", x_position: 0, y_position: 0)
+      note = Note.new(user_id: find_user_id(), contents: "", x_position: 0, y_position: 0)
       if note.save
         render json: NoteSerializer.get_note(note), status: 201
       else
@@ -9,7 +9,7 @@ class Api::V1::NoteController < ApplicationController
     end
 
     def update
-        note = Note.find_by(id: params[:id])
+        note = find_note()
         if note && note.update(note_params)
           render json: NoteSerializer.get_note(note), status: 201
         else
@@ -18,7 +18,7 @@ class Api::V1::NoteController < ApplicationController
       end
 
       def position
-        note = Note.find_by(id: params[:id])
+        note = find_note()
         if note && note.update(x_position: params[:x_position], y_position: params[:y_position])
           render json: NoteSerializer.get_note(note), status: 201
         else
@@ -27,7 +27,7 @@ class Api::V1::NoteController < ApplicationController
       end
 
       def delete
-        note = Note.find(params[:note_id])
+        note = find_note()
         if note.delete
           render json: NoteSerializer.delete("Note deleted sucsessfully"), status: 201
         else
@@ -41,7 +41,11 @@ class Api::V1::NoteController < ApplicationController
       User.find_by(email: params[:email]).id
     end 
 
+    def find_note()
+      Note.find_by(id: params[:id])
+    end 
+
     def note_params
-      params.permit(:contents, :x_position, :y_position)
+      params.permit(:id, :contents, :x_position, :y_position)
     end
   end
