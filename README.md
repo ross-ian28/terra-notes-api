@@ -97,19 +97,98 @@ headers: Content-Type = application/json
 {
     "data": {
         "type": "users",
-        "id": 2,
+        "id": 1,
         "attributes": {
             "name": "Pabu",
             "email": "pabu@2pabu.com",
             "username": null,
             "logged_in": false,
-            "incognito_mode": false
+            "incognito_mode": false,
+            "notes": []
         }
     }
 }
 ```
+### Get a users information
+```
+GET /api/v1/user
 
+body: 
+{
+    "email": "pabu@2pabu.com"
+}
+headers: Content-Type = application/json
+```
+```
+{
+    "data": {
+        "type": "users",
+        "id": 1,
+        "attributes": {
+            "name": "Pabu",
+            "email": "pabu@2pabu.com",
+            "username": null,
+            "logged_in": false,
+            "incognito_mode": false,
+            "notes": []
+        }
+    }
+}
+```
+### Login a user
+```
+GET /api/v1/login
 
+body: 
+{
+    "email": "pabu@2pabu.com",
+    "password": "pabu123"
+}
+headers: Content-Type = application/json
+```
+```
+{
+    "data": {
+        "type": "users",
+        "id": 1,
+        "attributes": {
+            "name": "Pabu",
+            "email": "pabu@2pabu.com",
+            "username": null,
+            "logged_in": true,
+            "incognito_mode": false,
+            "notes": []
+        }
+    }
+}
+```
+### Logout a user
+```
+GET /api/v1/logout
+
+body: 
+{
+    "email": "pabu@2pabu.com",
+    "password": "pabu123"
+}
+headers: Content-Type = application/json
+```
+```
+{
+    "data": {
+        "type": "users",
+        "id": 1,
+        "attributes": {
+            "name": "Pabu",
+            "email": "pabu@2pabu.com",
+            "username": null,
+            "logged_in": false,
+            "incognito_mode": false,
+            "notes": []
+        }
+    }
+}
+```
 ## Contact
 
 Ian Ross - [@LinkedIn](https://github.com/ross-ian28) - ianross.codes@gmail.com
